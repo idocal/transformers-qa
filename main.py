@@ -2,20 +2,33 @@ import re
 import string
 import torch
 from transformers import BartForConditionalGeneration, BartTokenizer
+from transformers import PreTrainedModel, PreTrainedTokenizer
 from dataset import QADataset
 import argparse
 
 
+def get_model_class_and_tokenizer(model_name: str) -> (PreTrainedModel, PreTrainedTokenizer):
+    models_and_tokenizers = {
+        'bart': (BartForConditionalGeneration, BartTokenizer)
+    }
+    for k in models_and_tokenizers.keys():
+        if model_name.startswith(k):
+            return models_and_tokenizers[k]
+    raise AttributeError(f"Model {model_name} is currently not supported")
+
+
 def load_model(model, state_dict):
+    model_class = get_model_class_and_tokenizer(model)[0]
+
     def _convert(key):
         if key.startswith('module.'):
             return key[len('module.'):]
         return key
     single_gpu_state_dict = {_convert(key): value for key, value in state_dict.items()}
-    return BartForConditionalGeneration.from_pretrained(model, state_dict=single_gpu_state_dict)
+    return model_class.from_pretrained(model, state_dict=single_gpu_state_dict)
 
 
-def normalize_answer(s):
+def normalize_answer(s: str) -> str:
     def remove_articles(text):
         return re.sub(r'\b(a|an|the)\b', ' ', text)
 
@@ -61,7 +74,7 @@ def run(args):
     tokenizer = BartTokenizer.from_pretrained(args.model)
 
     # load predict file data
-    dataset = QADataset(args.predict_file, tokenizer)
+    dataset = QADataset(args.predict_file)
     loader = dataset.loader(batch_size=args.predict_batch_size)
 
     # run interactive mode
@@ -92,7 +105,10 @@ def main():
         'bart': 'bart-large'
     }
 
+    requested_model = args.model
     args.model = models_dict.get(args.model)
+    if not args.model:
+        raise AttributeError(f"Model {requested_model} is currently not supported")
 
     # run predictions with args
     run(args)

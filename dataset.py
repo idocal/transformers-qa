@@ -1,14 +1,10 @@
 import json
 from torch.utils.data import Dataset, DataLoader
-from transformers import PreTrainedTokenizer
 
 
 class QADataset(Dataset):
 
-    MAX_LENGTH = 100
-
-    def __init__(self, data_path, tokenizer: PreTrainedTokenizer):
-        self.tokenizer = tokenizer
+    def __init__(self, data_path):
 
         # load questions and answers pairs from file
         with open(data_path, 'r', encoding='utf-8') as f:

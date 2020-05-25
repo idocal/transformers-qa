@@ -36,6 +36,7 @@ python3 main.py --model bart
                 --predict_file data/nqopen-test.json
 ```
 This script will parse the dataset JSON and load the downloaded model's state, then run questions and print the predictions alongside the correct answer.
+If a prediction run on file was successful, a log file should be added to the `logs` directory. 
 
 To run in interactive mode run:
 ```bash

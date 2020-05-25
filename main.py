@@ -102,10 +102,12 @@ def run(args):
     else:
         correct_answers = 0
         total_answers = 0
+        dataset_total_answers = len(loader) * args.predict_batch_size
         for questions, answers in loader:
             model_predictions = [normalize_answer(p) for p in predict(args, model, tokenizer, questions)]
             norm_answers = [normalize_answer(a) for a in answers]
             for i in range(args.predict_batch_size):
+                print(f"Question {total_answers + 1}/{dataset_total_answers}")
                 print(f"Q: {questions[i]}\nA: {norm_answers[i]}\nP: {model_predictions[i]}\n{'-' * 30}")
                 if norm_answers[i] == model_predictions[i]:  # exact match score
                     correct_answers += 1

@@ -1,6 +1,8 @@
+import os
 import re
 import string
 import torch
+from _datetime import datetime
 from transformers import BartForConditionalGeneration, BartTokenizer
 from transformers import PreTrainedModel, PreTrainedTokenizer
 from dataset import QADataset
@@ -59,6 +61,21 @@ def predict(args, p_model: PreTrainedModel, p_tokenizer: PreTrainedTokenizer, qu
     return predictions
 
 
+def log_to_file(args, accuracy) -> str:
+    log_dir = "logs"
+    if not os.path.exists(log_dir):
+        os.mkdir(log_dir)
+    t = datetime.now()
+    filename = f"{t.year}-{t.month}-{t.day}_{t.hour}-{t.minute}-{t.second}.txt"
+    filepath = os.path.join(log_dir, filename)
+    with open(filepath, "w+") as f:
+        args_dict = args.__dict__
+        for k, v in args_dict.items():
+            f.write(f"{k}: {v}\n")
+        f.write(f"accuracy: {accuracy}\n")
+    return filepath
+
+
 def interactive(args, _model: PreTrainedModel, _tokenizer: PreTrainedTokenizer):
     while True:
         user_question = input("Ask anything...\n")
@@ -83,11 +100,19 @@ def run(args):
 
     # run and print model predictions from file
     else:
+        correct_answers = 0
+        total_answers = 0
         for questions, answers in loader:
             model_predictions = [normalize_answer(p) for p in predict(args, model, tokenizer, questions)]
             norm_answers = [normalize_answer(a) for a in answers]
             for i in range(args.predict_batch_size):
                 print(f"Q: {questions[i]}\nA: {norm_answers[i]}\nP: {model_predictions[i]}\n{'-' * 30}")
+                if norm_answers[i] == model_predictions[i]:  # exact match score
+                    correct_answers += 1
+                total_answers += 1
+        acc = correct_answers / total_answers
+        log_path = log_to_file(args, acc)
+        print(f"Inference is done. results are logged to: {log_path}")
 
 
 def main():

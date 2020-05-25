@@ -30,9 +30,14 @@ $ chmod +x download_data.sh; ./download_data.sh
 
 
 ## Run Predictions
-To run an NQ dataset using a pre-trained model
+To run an NQ dataset from file using a pre-trained model
 ```bash
 python3 main.py --model bart
                 --predict_file data/nqopen-test.json
 ```
 This script will parse the dataset JSON and load the downloaded model's state, then run questions and print the predictions alongside the correct answer.
+
+To run in interactive mode run:
+```bash
+python3 main.py --model bart --interactive
+```

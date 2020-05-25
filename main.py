@@ -46,6 +46,14 @@ def predict(args, p_model, p_tokenizer, question):
     return predictions
 
 
+def interactive(args, _model, _tokenizer):
+    while True:
+        user_question = input("Ask anything...\n")
+        user_question = user_question if user_question.endswith("?") else user_question + "?"
+        user_answer = predict(args, _model, _tokenizer, [user_question])[0]
+        print(f"Q: {user_question}\nP: {user_answer}\n{'-' * 30}")
+
+
 def run(args):
     # initialize pretrained model and tokenizer from files
     model_state_dict = torch.load(args.model_file)
@@ -56,18 +64,24 @@ def run(args):
     dataset = QADataset(args.predict_file, tokenizer)
     loader = dataset.loader(batch_size=args.predict_batch_size)
 
-    # run and print model predictions
-    for questions, answers in loader:
-        model_predictions = [normalize_answer(p) for p in predict(args, model, tokenizer, questions)]
-        norm_answers = [normalize_answer(a) for a in answers]
-        for i in range(args.predict_batch_size):
-            print(f"Q: {questions[i]}\nA: {norm_answers[i]}\nP: {model_predictions[i]}\n{'-' * 30}")
+    # run interactive mode
+    if args.interactive:
+        interactive(args, model, tokenizer)
+
+    # run and print model predictions from file
+    else:
+        for questions, answers in loader:
+            model_predictions = [normalize_answer(p) for p in predict(args, model, tokenizer, questions)]
+            norm_answers = [normalize_answer(a) for a in answers]
+            for i in range(args.predict_batch_size):
+                print(f"Q: {questions[i]}\nA: {norm_answers[i]}\nP: {model_predictions[i]}\n{'-' * 30}")
 
 
 def main():
     # parse args from CLI
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default='bart')
+    parser.add_argument("--interactive", action='store_true')
     parser.add_argument("--model_file", default="out/best-model.pt")
     parser.add_argument("--predict_file", default="data/nqopen-test.json")
     parser.add_argument("--predict_batch_size", default=1, type=int)

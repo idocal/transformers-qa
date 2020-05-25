@@ -67,12 +67,18 @@ def run(args):
 def main():
     # parse args from CLI
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default='bart-large')
+    parser.add_argument("--model", default='bart')
     parser.add_argument("--model_file", default="out/best-model.pt")
     parser.add_argument("--predict_file", default="data/nqopen-test.json")
     parser.add_argument("--predict_batch_size", default=1, type=int)
     parser.add_argument("--max_length", default=32, type=int)
     args = parser.parse_args()
+
+    models_dict = {
+        'bart': 'bart-large'
+    }
+
+    args.model = models_dict.get(args.model)
 
     # run predictions with args
     run(args)

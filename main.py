@@ -44,8 +44,8 @@ def normalize_answer(s: str) -> str:
     return white_space_fix(remove_articles(remove_punc(lower(s))))
 
 
-def predict(args, p_model, p_tokenizer, question):
-    questions_encoded = p_tokenizer.batch_encode_plus(question,
+def predict(args, p_model: PreTrainedModel, p_tokenizer: PreTrainedTokenizer, questions: list):
+    questions_encoded = p_tokenizer.batch_encode_plus(questions,
                                                       pad_to_max_length=True,
                                                       max_length=args.max_length,
                                                       return_tensors='pt')
@@ -59,7 +59,7 @@ def predict(args, p_model, p_tokenizer, question):
     return predictions
 
 
-def interactive(args, _model, _tokenizer):
+def interactive(args, _model: PreTrainedModel, _tokenizer: PreTrainedTokenizer):
     while True:
         user_question = input("Ask anything...\n")
         user_question = user_question if user_question.endswith("?") else user_question + "?"
